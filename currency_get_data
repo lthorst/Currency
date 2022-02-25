@@ -1,0 +1,62 @@
+# Title: Get Data from API
+# Author: Lasse Thorst
+# Version: 1
+# Comment: get data from https://exchangeratesapi.io/ 
+# Testing: postman
+# Setup
+
+rm(list = ls())
+
+library(dplyr)
+library(httr)
+
+
+# Function --------------------------------------------------------------------
+
+currency_history <- function(from_date, to_date, curr) {
+  # comments
+  # from_date, date in format "YYYY-mm-dd"
+  # to_date, date in format "YYYY-mm-dd"
+  # curr should list currencies with , as a seperate such as "USD"
+  my_url <- paste0("https://api.exchangeratesapi.io/history?start_at=", from_date, 
+                   "&", "end_at=", to_date, 
+                   "&symbols=", curr)
+  
+  df_get <- httr::GET(my_url)
+
+  df <- as.data.frame(t(content(df_get, "parsed")$rates))  
+  
+  df <- unlist(df)
+  
+  df <- data.frame(Date = substr(names(df), start= 1, stop =10), 
+                   Currency = as.numeric(df))
+  
+  return(df)
+  # test
+  # currency("2020-01-01", "2020-02-28","USD")
+  # currency("2020-01-01", "2020-02-28","USD,GBP")
+}
+
+
+currency_last <-  function(curr) {
+  # comments
+  # from_date, date in format "YYYY-mm-dd"
+  # to_date, date in format "YYYY-mm-dd"
+  # curr should list currencies with , as a seperate such as "USD"
+  my_url <- paste0("https://api.exchangeratesapi.io/latest?base=DKK", "&symbols=", curr) 
+  
+  df_get <- httr::GET(my_url)
+  
+  df <- data.frame(c(content(df_get, "parsed")$date,
+                     content(df_get, "parsed")$rates))
+  colnames(df)[1] <- "Date"
+  
+  return(df) 
+  # test
+  # currency_last("USD,GBP")
+  }
+
+
+
+
+
